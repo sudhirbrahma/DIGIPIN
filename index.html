@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIGIPIN Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="number"]:focus, input[type="text"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .calculate-btn:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 5px solid #4CAF50;
+        }
+        .result-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+        .error {
+            color: #d32f2f;
+            background-color: #ffebee;
+            border-left-color: #d32f2f;
+        }
+        .direct-result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DIGIPIN Calculator</h1>
+        
+        <div class="input-group">
+            <label for="latitude">Latitude:</label>
+            <input type="number" id="latitude" step="any" placeholder="Enter latitude (2.5 to 38.5)">
+        </div>
+        
+        <div class="input-group">
+            <label for="longitude">Longitude:</label>
+            <input type="number" id="longitude" step="any" placeholder="Enter longitude (63.5 to 99.5)">
+        </div>
+        
+        <button class="calculate-btn" onclick="calculateDigipin()">Calculate DIGIPIN</button>
+        
+        <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+            webpage by Sudhir Brahma using js code from Dept of post India
+        </div>
+        
+        <div id="result" class="result" style="display: none;">
+            <div>DIGIPIN Result:</div>
+            <div id="result-value" class="result-value"></div>
+        </div>
+    </div>
+
+    <!-- Second Calculator Box -->
+    <div class="container" style="margin-top: 30px;">
+        <h1>DIGIPIN to Latitude & Longitude Calculator</h1>
+        
+        <div class="input-group">
+            <label for="digipin">DIGIPIN:</label>
+            <input type="text" id="digipin" placeholder="Enter 10-digit DIGIPIN (e.g. FC9-823-4567)">
+        </div>
+        
+        <button class="calculate-btn" onclick="calculateLatLng()">Calculate Latitude & Longitude</button>
+        
+        <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+            webpage by Sudhir Brahma using js code from Dept of post India
+        </div>
+        
+        <div id="result2" class="result" style="display: none;">
+            <div id="lat-result" style="margin-bottom: 10px;"></div>
+            <div id="lng-result"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Function Get_LatLng_By_Digipin() takes a 10 digit alphanumeric code
+         * as input and encodes it into degree-decimal coordinates
+         */
+        function Get_LatLng_By_Digipin(vDigiPin) {
+            vDigiPin = vDigiPin.replaceAll('-', '');
+            if (vDigiPin.length != 10) {
+                return "Invalid DIGIPIN";
+            }
+            //DIGIPIN Labelling Grid
+            var L = [
+                ['F', 'C', '9', '8'],
+                ['J', '3', '2', '7'],
+                ['K', '4', '5', '6'],
+                ['L', 'M', 'P', 'T']
+            ];
+            // Bounding Box Extent
+            var MinLat = 2.50; var MaxLat = 38.50; var MinLng = 63.50; var MaxLng = 99.50;
+            var LatDivBy = 4;
+            var LngDivBy = 4;
+            var LatDivVal = 0;
+            var LngDivVal = 0;
+            var ri, ci, f;
+            var Lat1, Lat2, Lng1, Lng2;
+            
+            for (let Lvl = 0; Lvl < 10; Lvl++) {
+                ri = -1;
+                ci = -1;
+                const digipinChar = vDigiPin.charAt(Lvl);
+                LatDivVal = (MaxLat - MinLat) / LatDivBy;
+                LngDivVal = (MaxLng - MinLng) / LngDivBy;
+                f = 0;
+
+                for (let r = 0; r < LatDivBy; r++) {
+                    for (let c = 0; c < LngDivBy; c++) {
+                        if (L[r][c] == digipinChar) {
+                            ri = r;
+                            ci = c;
+                            f = 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (f == 0) {
+                    return 'Invalid DIGIPIN';
+                }
+                
+                Lat1 = MaxLat - (LatDivVal * (ri + 1));
+                Lat2 = MaxLat - (LatDivVal * (ri)); // Fixed: Added missing closing parenthesis
+                Lng1 = MinLng + (LngDivVal * (ci));
+                Lng2 = MinLng + (LngDivVal * (ci + 1));
+
+                MinLat = Lat1;
+                MaxLat = Lat2;
+                MinLng = Lng1;
+                MaxLng = Lng2;
+            }
+            
+            var cLat = (Lat2 + Lat1) / 2;
+            var cLng = (Lng2 + Lng1) / 2;
+
+            return cLat + ', ' + cLng;
+        }
+
+        function calculateLatLng() {
+            // Get input value
+            const digipinInput = document.getElementById('digipin').value.trim();
+            
+            // Validate input
+            if (!digipinInput) {
+                showResult2('Please enter a DIGIPIN value', true);
+                return;
+            }
+            
+            // Call the reverse DIGIPIN function
+            const result = Get_LatLng_By_Digipin(digipinInput);
+            
+            // Debug: log the result to console
+            console.log('Result from Get_LatLng_By_Digipin:', result);
+            
+            // Check if result is an error message
+            if (result === 'Invalid DIGIPIN') {
+                showResult2(result, true);
+                return;
+            }
+            
+            // Parse the result string "lat, lng"
+            const coords = result.split(', ');
+            if (coords.length === 2) {
+                const lat = parseFloat(coords[0]);
+                const lng = parseFloat(coords[1]);
+                showLatLngResult(lat, lng);
+            } else {
+                showResult2('Error parsing coordinates', true);
+            }
+        }
+
+        function showDirectResult(result) {
+            const directResultDiv = document.getElementById('direct-result');
+            directResultDiv.textContent = result;
+            directResultDiv.style.display = 'block';
+        }
+
+        function hideDirectResult() {
+            const directResultDiv = document.getElementById('direct-result');
+            directResultDiv.style.display = 'none';
+        }
+
+        function showLatLngResult(lat, lng) {
+            const resultDiv = document.getElementById('result2');
+            const latResult = document.getElementById('lat-result');
+            const lngResult = document.getElementById('lng-result');
+            
+            latResult.innerHTML = '<strong>Latitude in the Digipin is:</strong> ' + lat.toFixed(6);
+            lngResult.innerHTML = '<strong>Longitude of the Digipin is:</strong> ' + lng.toFixed(6);
+            
+            resultDiv.style.display = 'block';
+            resultDiv.classList.remove('error');
+        }
+
+        function showResult2(result, isError = false) {
+            const resultDiv = document.getElementById('result2');
+            const latResult = document.getElementById('lat-result');
+            const lngResult = document.getElementById('lng-result');
+            
+            latResult.textContent = result;
+            lngResult.textContent = '';
+            resultDiv.style.display = 'block';
+            
+            if (isError) {
+                resultDiv.classList.add('error');
+            } else {
+                resultDiv.classList.remove('error');
+            }
+        }
+
+        /**
+         * Function GET_DIGIPIN() takes latitude-longitude as input and encodes
+         * it into a 10 digit alphanumeric code
+         * A higher precision (upto 5 decimal places) of latitude-longitude input
+         * values results in more precise DIGIPIN
+         */
+        function Get_DIGIPIN(lat, lon) {
+            //DIGIPIN Labelling Grid
+            var L = [
+                ['F', 'C', '9', '8'],
+                ['J', '3', '2', '7'],
+                ['K', '4', '5', '6'],
+                ['L', 'M', 'P', 'T']
+            ];
+            var vDIGIPIN = '';
+
+            //variable for identification of row and column of the cells
+            var row = 0; var column = 0;
+            // Bounding Box Extent
+            var MinLat = 2.5; var MaxLat = 38.50; var MinLon = 63.50; var MaxLon = 99.50;
+            var LatDivBy = 4; var LonDivBy = 4;
+            var LatDivDeg = 0; var LonDivDeg = 0;
+            
+            if (lat < MinLat || lat > MaxLat) {
+                return 'Latitude Out of range (2.5 to 38.5)';
+            }
+            if (lon < MinLon || lon > MaxLon) {
+                return 'Longitude Out of range (63.5 to 99.5)';
+            }
+            
+            for (let Lvl = 1; Lvl <= 10; Lvl++) {
+                LatDivDeg = (MaxLat - MinLat) / LatDivBy;
+                LonDivDeg = (MaxLon - MinLon) / LonDivBy;
+                var NextLvlMaxLat = MaxLat;
+                var NextLvlMinLat = MaxLat - LatDivDeg;
+                
+                for (x = 0; x < LatDivBy; x++) {
+                    if (lat >= NextLvlMinLat && lat < NextLvlMaxLat) {
+                        row = x;
+                        break;
+                    }
+                    else {
+                        NextLvlMaxLat = NextLvlMinLat
+                        NextLvlMinLat = NextLvlMaxLat - LatDivDeg;
+                    }
+                }
+
+                var NextLvlMinLon = MinLon;
+                var NextLvlMaxLon = MinLon + LonDivDeg;
+                
+                for (x = 0; x < LonDivBy; x++) {
+                    if (lon >= NextLvlMinLon && lon < NextLvlMaxLon) {
+                        column = x;
+                        break;
+                    }
+                    else if ((NextLvlMinLon + LonDivDeg) < MaxLon) { //NEWLY ADDED TO ADDRESS BOUNDARY CONDITION
+                        NextLvlMinLon = NextLvlMaxLon;
+                        NextLvlMaxLon = NextLvlMinLon + LonDivDeg;
+                    }
+                    else {
+                        column = x;
+                    }
+                }
+
+                if (Lvl == 1) {
+                    if (L[row][column] == "0") {
+                        vDIGIPIN = "Out of Bound";
+                        break;
+                    }
+                }
+                vDIGIPIN = vDIGIPIN + L[row][column];
+
+                if (Lvl == 3 || Lvl == 6) {
+                    vDIGIPIN = vDIGIPIN + "-"
+                }
+
+                // Set Max boundary for next level
+                MinLat = NextLvlMinLat; MaxLat = NextLvlMaxLat;
+                MinLon = NextLvlMinLon; MaxLon = NextLvlMaxLon;
+            }
+            return vDIGIPIN;
+        }
+
+        function calculateDigipin() {
+            // Get input values
+            const latInput = document.getElementById('latitude').value;
+            const lonInput = document.getElementById('longitude').value;
+            
+            // Validate inputs
+            if (!latInput || !lonInput) {
+                showResult('Please enter both latitude and longitude values', true);
+                return;
+            }
+            
+            // Convert to floating point numbers
+            const lat = parseFloat(latInput);
+            const lon = parseFloat(lonInput);
+            
+            // Check if conversion was successful
+            if (isNaN(lat) || isNaN(lon)) {
+                showResult('Please enter valid numeric values', true);
+                return;
+            }
+            
+            // Call the DIGIPIN function
+            const result = Get_DIGIPIN(lat, lon);
+            
+            // Display result
+            const isError = result.includes('Out of range') || result.includes('Out of Bound');
+            showResult(result, isError);
+        }
+
+        function showResult(result, isError = false) {
+            const resultDiv = document.getElementById('result');
+            const resultValue = document.getElementById('result-value');
+            
+            resultValue.textContent = result;
+            resultDiv.style.display = 'block';
+            
+            if (isError) {
+                resultDiv.classList.add('error');
+            } else {
+                resultDiv.classList.remove('error');
+            }
+        }
+
+        // Allow Enter key to trigger calculation for both calculators
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                // Check which input field is focused
+                const activeElement = document.activeElement;
+                if (activeElement.id === 'digipin') {
+                    calculateLatLng();
+                } else {
+                    calculateDigipin();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
