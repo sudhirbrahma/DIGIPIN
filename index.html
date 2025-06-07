@@ -132,7 +132,11 @@
         
         <div id="result2" class="result" style="display: none;">
             <div id="lat-result" style="margin-bottom: 10px;"></div>
-            <div id="lng-result"></div>
+            <div id="lng-result" style="margin-bottom: 15px;"></div>
+            <div id="maps-link-section" style="display: none;">
+                <div style="margin-bottom: 10px; font-weight: bold;">Link for the location on google maps is below:</div>
+                <div id="maps-link"></div>
+            </div>
         </div>
     </div>
 
@@ -250,22 +254,31 @@
             const resultDiv = document.getElementById('result2');
             const latResult = document.getElementById('lat-result');
             const lngResult = document.getElementById('lng-result');
+            const mapsLinkSection = document.getElementById('maps-link-section');
+            const mapsLink = document.getElementById('maps-link');
             
             latResult.innerHTML = '<strong>Latitude in the Digipin is:</strong> ' + lat.toFixed(6);
             lngResult.innerHTML = '<strong>Longitude of the Digipin is:</strong> ' + lng.toFixed(6);
             
+            // Create Google Maps URL
+            const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            mapsLink.innerHTML = `<a href="${mapsUrl}" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold;">${mapsUrl}</a>`;
+            
             resultDiv.style.display = 'block';
             resultDiv.classList.remove('error');
+            mapsLinkSection.style.display = 'block';
         }
 
         function showResult2(result, isError = false) {
             const resultDiv = document.getElementById('result2');
             const latResult = document.getElementById('lat-result');
             const lngResult = document.getElementById('lng-result');
+            const mapsLinkSection = document.getElementById('maps-link-section');
             
             latResult.textContent = result;
             lngResult.textContent = '';
             resultDiv.style.display = 'block';
+            mapsLinkSection.style.display = 'none';
             
             if (isError) {
                 resultDiv.classList.add('error');
