@@ -44,6 +44,12 @@
             border-color: #4CAF50;
             outline: none;
         }
+        input:disabled {
+            background-color: #f5f5f5;
+            color: #999;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
         .calculate-btn {
             width: 100%;
             padding: 15px;
@@ -87,6 +93,12 @@
             font-size: 16px;
             text-align: center;
         }
+        .alternate-heading {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -95,12 +107,17 @@
         
         <div class="input-group">
             <label for="latitude">Latitude:</label>
-            <input type="number" id="latitude" step="any" placeholder="Enter latitude (2.5 to 38.5)">
+            <input type="number" id="latitude" step="any" placeholder="Enter latitude (2.5 to 38.5)" oninput="handleIndividualInput()">
         </div>
         
         <div class="input-group">
             <label for="longitude">Longitude:</label>
-            <input type="number" id="longitude" step="any" placeholder="Enter longitude (63.5 to 99.5)">
+            <input type="number" id="longitude" step="any" placeholder="Enter longitude (63.5 to 99.5)" oninput="handleIndividualInput()">
+        </div>
+        
+        <div class="input-group">
+            <div class="alternate-heading">Alternately enter comma separated values in the format: latitude, longitude</div>
+            <input type="text" id="comma-separated" placeholder="e.g., 15.22, 77.986" oninput="handleCommaSeparatedInput()">
         </div>
         
         <button class="calculate-btn" onclick="calculateDigipin()">Calculate DIGIPIN</button>
@@ -141,6 +158,39 @@
     </div>
 
     <script>
+        // Function to handle input in individual latitude/longitude fields
+        function handleIndividualInput() {
+            const latInput = document.getElementById('latitude');
+            const lonInput = document.getElementById('longitude');
+            const commaSeparatedInput = document.getElementById('comma-separated');
+            
+            // If either individual field has content, disable comma-separated input
+            if (latInput.value.trim() !== '' || lonInput.value.trim() !== '') {
+                commaSeparatedInput.disabled = true;
+                commaSeparatedInput.value = '';
+            } else {
+                commaSeparatedInput.disabled = false;
+            }
+        }
+        
+        // Function to handle input in comma-separated field
+        function handleCommaSeparatedInput() {
+            const latInput = document.getElementById('latitude');
+            const lonInput = document.getElementById('longitude');
+            const commaSeparatedInput = document.getElementById('comma-separated');
+            
+            // If comma-separated field has content, disable individual fields
+            if (commaSeparatedInput.value.trim() !== '') {
+                latInput.disabled = true;
+                lonInput.disabled = true;
+                latInput.value = '';
+                lonInput.value = '';
+            } else {
+                latInput.disabled = false;
+                lonInput.disabled = false;
+            }
+        }
+
         /**
          * Function Get_LatLng_By_Digipin() takes a 10 digit alphanumeric code
          * as input and encodes it into degree-decimal coordinates
@@ -371,24 +421,47 @@
         }
 
         function calculateDigipin() {
-            // Get input values
-            const latInput = document.getElementById('latitude').value;
-            const lonInput = document.getElementById('longitude').value;
+            let lat, lon;
             
-            // Validate inputs
-            if (!latInput || !lonInput) {
-                showResult('Please enter both latitude and longitude values', true);
-                return;
-            }
+            // Check if comma-separated input is being used
+            const commaSeparatedInput = document.getElementById('comma-separated').value.trim();
             
-            // Convert to floating point numbers
-            const lat = parseFloat(latInput);
-            const lon = parseFloat(lonInput);
-            
-            // Check if conversion was successful
-            if (isNaN(lat) || isNaN(lon)) {
-                showResult('Please enter valid numeric values', true);
-                return;
+            if (commaSeparatedInput !== '') {
+                // Parse comma-separated input
+                const coords = commaSeparatedInput.split(',');
+                
+                if (coords.length !== 2) {
+                    showResult('Please enter values in the format: latitude, longitude', true);
+                    return;
+                }
+                
+                lat = parseFloat(coords[0].trim());
+                lon = parseFloat(coords[1].trim());
+                
+                if (isNaN(lat) || isNaN(lon)) {
+                    showResult('Please enter valid numeric values', true);
+                    return;
+                }
+            } else {
+                // Use individual input fields
+                const latInput = document.getElementById('latitude').value;
+                const lonInput = document.getElementById('longitude').value;
+                
+                // Validate inputs
+                if (!latInput || !lonInput) {
+                    showResult('Please enter both latitude and longitude values', true);
+                    return;
+                }
+                
+                // Convert to floating point numbers
+                lat = parseFloat(latInput);
+                lon = parseFloat(lonInput);
+                
+                // Check if conversion was successful
+                if (isNaN(lat) || isNaN(lon)) {
+                    showResult('Please enter valid numeric values', true);
+                    return;
+                }
             }
             
             // Call the DIGIPIN function
